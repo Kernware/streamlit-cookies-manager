@@ -1,3 +1,8 @@
+## Modifications from Kernware
+
+- added reset feature, overwrites cookies values with empty string and set's the expiry date to 1970, expired cookies get delete by the browser (most of them)
+
+
 # Streamlit Cookies Manager
 
 Access and change browser cookies from Streamlit scripts:
@@ -26,3 +31,25 @@ if st.button("Change the cookie"):
     if st.button("No really, change it now"):
         cookies.save()  # Force saving the cookies now, without a rerun
 ```
+
+
+## Release Process
+
+Build package:
+```
+npm --prefix ./streamlit_cookies_manager/ run build
+```
+
+Create new branch with version
+```
+git checkout -b "v<version>"
+```
+
+Force add build folder and push
+```
+git add -f chat_input_advanced/frontend/build/
+git commit -m "Release v<version>"
+git push --set-upstream origin v<version>
+```
+
+And then create a new release on github, create a new tag with `release_v<version>`
