@@ -113,3 +113,6 @@ class EncryptedCookieManager(MutableMapping[str, str]):
 
     def __delitem__(self, key: str) -> None:
         del self._cookie_manager[key]
+
+    def reset(self):
+        self._cookie_manager.reset()

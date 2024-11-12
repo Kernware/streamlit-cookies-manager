@@ -19,7 +19,7 @@ class CookieManager(MutableMapping[str, str]):
             self._cookies = None
         else:
             self._cookies = parse_cookies(raw_cookie)
-            self._clean_queue()
+            self._queue = {}
         self._default_expiry = datetime.now() + timedelta(days=365)
         self._path = path if path is not None else "/"
 
@@ -30,17 +30,31 @@ class CookieManager(MutableMapping[str, str]):
         if self._queue:
             self._run_component(save_only=True, key="CookieManager.sync_cookies.save")
 
-    def _run_component(self, save_only: bool, key: str):
+    def reset(self):
+        # overwrite all cookies with empty string and and expiry date
+        for name in self._cookies:
+            self._queue[name] = dict(
+                value="",
+                expires_at=datetime(1970, 1, 1, 2).isoformat(),
+                path=self._path,
+            )
+
+        queue = {
+            k: v for k, v in self._queue.items()
+        }
+        _component_func(queue=queue, resetAll=True, saveOnly=False, key="CookieManager.sync_cookies.save")
+        self._queue = {}
+        self._cookies = {}
+        raw_cookies = self._run_component(save_only=False, key="CookieManager.sync_cookies.verify")
+        if raw_cookies is not None:
+            print(f"COOKIE RESET ERROR")
+
+
+    def _run_component(self, save_only: bool, key: str, reset_cookies: bool = False):
         queue = {
             self._prefix + k: v for k, v in self._queue.items()
         }
-        return _component_func(queue=queue, saveOnly=save_only, key=key)
-
-    def _clean_queue(self):
-        for name, spec in list(self._queue.items()):
-            value = self._cookies.get(self._prefix + name)
-            if value == spec['value']:
-                del self._queue[name]
+        return _component_func(queue=queue, resetAll=reset_cookies, saveOnly=save_only, key=key)
 
     def __repr__(self):
         if self.ready():
